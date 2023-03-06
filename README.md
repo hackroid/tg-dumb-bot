@@ -18,6 +18,7 @@ TELEGRAM_APITOKEN=123456789:ABCDEFGHIJKLMNOPQRSTUVWXYZ
 Then
 
 ```shell
+go mod tidy
 go run main/main.go
 ```
 
