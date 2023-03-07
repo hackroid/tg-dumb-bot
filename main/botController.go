@@ -6,17 +6,17 @@ import (
 	"log"
 	"math/rand"
 	"os"
-	"strings"
 	"sync"
 	"unicode"
 )
 
 var (
-	ff      func(r rune) bool
-	bot     *tgbotapi.BotAPI
-	updates tgbotapi.UpdatesChannel
-	err     error
-	mutex   sync.Mutex
+	ff          func(r rune) bool
+	bot         *tgbotapi.BotAPI
+	updates     tgbotapi.UpdatesChannel
+	err         error
+	mutex       sync.Mutex
+	haveSomeFun map[string]func(msg string) (string, error)
 )
 
 func initBot() {
@@ -79,38 +79,45 @@ func handleChannelTriggered(update tgbotapi.Update) {
 		}
 	} else {
 		replyWhat = true
-		switch recvMsg.Command() {
-		case "help":
-			msg = "按 \"/\" 自己看"
-		case "choice":
-			log.Printf("[CMD] %s", recvMsg.Text)
-			dices := strings.FieldsFunc(recvMsg.Text, ff)
-			if len(dices) == 1 {
-				msg = "你选寄吧呢"
-			} else if len(dices) == 2 {
-				msg = "就一个你选寄吧呢"
-			} else {
-				dices = dices[1:]
-				msg = dices[rand.Intn(len(dices))]
-			}
-		case "status":
-			msg = "I'm 凹K."
-		default:
-			msg = "你说寄吧呢"
-		}
+		msg, err = callHandler(recvMsg.Command(), recvMsg.Text)
+		//switch recvMsg.Command() {
+		//case "help":
+		//	msg = "按 \"/\" 自己看"
+		//case "choice":
+		//	log.Printf("[CMD] %s", recvMsg.Text)
+		//	dices := strings.FieldsFunc(recvMsg.Text, ff)
+		//	if len(dices) == 1 {
+		//		msg = "你选寄吧呢"
+		//	} else if len(dices) == 2 {
+		//		msg = "就一个你选寄吧呢"
+		//	} else {
+		//		dices = dices[1:]
+		//		msg = dices[rand.Intn(len(dices))]
+		//	}
+		//case "status":
+		//	msg = "I'm 凹K."
+		//default:
+		//	msg = "你说寄吧呢"
+		//}
 	}
 
 	// log.Printf("[%s@%s] %s", recvMsg.From.UserName, recvMsg.Chat.ID, recvMsg.Text)
 
 	// msg := tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.Text)
 	if replyWhat {
-		//msg.ReplyToMessageID = update.Message.MessageID
-		//_, err = bot.Send(msg)
-		//if err != nil {
-		//	log.Fatalf("error sending msg: %s", err)
-		//}
 		go handleSendingMessage(update, msg)
 	}
+}
+
+func addHandler(funName string, fun func(msg string) (string, error)) {
+	haveSomeFun[funName] = fun
+}
+
+func callHandler(funName string, msg string) (string, error) {
+	if haveSomeFun[funName] == nil {
+		return haveSomeFun["default"](msg)
+	}
+	return haveSomeFun[funName](msg)
 }
 
 func handleSendingMessage(update tgbotapi.Update, msg string) {
