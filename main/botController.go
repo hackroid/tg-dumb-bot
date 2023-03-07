@@ -42,7 +42,7 @@ func (b *BotServer) initBot() {
 	}
 	b.bot.Debug = debug
 
-	log.Printf("Authorized on account %s", b.bot.Self.UserName)
+	log.Printf("Authorized on account %s\n", b.bot.Self.UserName)
 
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
@@ -75,7 +75,7 @@ func (b *BotServer) initSendQueue() {
 		for replyMsg := range ch {
 			_, err := b.bot.Send(replyMsg)
 			if err != nil {
-				log.Fatalf("error sending msg: %s", err)
+				log.Printf("[ERROR] sending msg: %s\n", err)
 			}
 		}
 	}()
@@ -98,7 +98,7 @@ func (b *BotServer) handleChannelUpdate(update tgbotapi.Update) {
 	// log.Printf("[%s@%s] %s", recvMsg.From.UserName, recvMsg.Chat.ID, recvMsg.Text)
 	// msg := tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.Text)
 	if replyWhat {
-		log.Printf("[REPLY] %s", respMsgText)
+		log.Printf("[REPLY] %s\n", respMsgText)
 		replyMsg := tgbotapi.NewMessage(update.Message.Chat.ID, respMsgText)
 		replyMsg.ReplyToMessageID = update.Message.MessageID
 		// Put the replyMsg into sending queue

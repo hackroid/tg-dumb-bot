@@ -13,12 +13,13 @@ Paste your token into `.env` like:
 
 ```text
 TELEGRAM_APITOKEN=123456789:ABCDEFGHIJKLMNOPQRSTUVWXYZ
+DEBUG=1
 ```
 
 Then
 
 ```shell
 go mod tidy
-go run main/main.go
+go build -o bin/ ./main
+nohup ./bin/main > ./test.log 2>&1 &
 ```
-
