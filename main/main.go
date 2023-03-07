@@ -1,10 +1,9 @@
 package main
 
 func main() {
-	initBot()
-	addHandler("help", help)
-	addHandler("choice", choice)
-	addHandler("status", status)
-	addHandler("default", ddefault)
-	startHandler()
+	bs := new(BotServer)
+	bs.initBot()
+	bs.addMessageHandler(MSG_TYPE_TEXT, normalTextMessage)
+	bs.addMessageHandler(MSG_TYPE_CMD, normalCommandMessage)
+	bs.pollingChannelUpdates()
 }

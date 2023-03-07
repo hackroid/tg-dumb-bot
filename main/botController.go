@@ -4,58 +4,85 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/joho/godotenv"
 	"log"
-	"math/rand"
 	"os"
-	"sync"
-	"unicode"
 )
+
+type msgHandlerFunc func(recvMsg *tgbotapi.Message) (string, bool, error)
+
+type BotServer struct {
+	bot           *tgbotapi.BotAPI
+	sendCh        chan tgbotapi.MessageConfig
+	handlerMapper map[uint8]msgHandlerFunc
+	updates       tgbotapi.UpdatesChannel
+}
 
 var (
-	ff          func(r rune) bool
-	bot         *tgbotapi.BotAPI
-	updates     tgbotapi.UpdatesChannel
-	err         error
-	mutex       sync.Mutex
-	haveSomeFun map[string]func(msg string) (string, error)
+	MSG_TYPE_TEXT uint8 = 0
+	MSG_TYPE_CMD  uint8 = 1
 )
 
-func initBot() {
-	ff = func(r rune) bool { return unicode.IsSpace(r) }
+func (b *BotServer) initBot() {
+	log.Println("Starting tg-DUMB-bot ...")
+	var err error
 
-	err = godotenv.Load()
-	if err != nil {
+	// Load global var
+	b.handlerMapper = make(map[uint8]msgHandlerFunc)
+
+	// Load env var
+	if err := godotenv.Load(); err != nil {
 		log.Fatal("Error loading .env file")
 	}
-
 	token := os.Getenv("TELEGRAM_APITOKEN")
+	debug := os.Getenv("DEBUG") == "1"
 
-	bot, err = tgbotapi.NewBotAPI(token)
+	// New bot instance
+	b.bot, err = tgbotapi.NewBotAPI(token)
 	if err != nil {
 		log.Panic(err)
 	}
+	b.bot.Debug = debug
 
-	bot.Debug = false
-
-	log.Printf("Authorized on account %s", bot.Self.UserName)
+	log.Printf("Authorized on account %s", b.bot.Self.UserName)
 
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
 
-	updates = bot.GetUpdatesChan(u)
+	b.updates = b.bot.GetUpdatesChan(u)
+	b.updates.Clear()
+
+	b.initSendQueue()
+
+	log.Println("Bot Initialization Complete")
+	log.Println("===============================")
 }
 
-func startHandler() {
-	for update := range updates {
-		// ignore any non-Message updates
+func (b *BotServer) pollingChannelUpdates() {
+	for update := range b.updates {
+		// Ignore any non-Message updates
 		if update.Message == nil {
 			continue
 		}
 
-		go handleChannelTriggered(update)
+		go b.handleChannelUpdate(update)
 	}
 }
 
-func handleChannelTriggered(update tgbotapi.Update) {
+func (b *BotServer) initSendQueue() {
+	// This func makes a sending queue, wait for msg in channel
+	// and send it one by one
+	ch := make(chan tgbotapi.MessageConfig, 100)
+	go func() {
+		for replyMsg := range ch {
+			_, err := b.bot.Send(replyMsg)
+			if err != nil {
+				log.Fatalf("error sending msg: %s", err)
+			}
+		}
+	}()
+	b.sendCh = ch
+}
+
+func (b *BotServer) handleChannelUpdate(update tgbotapi.Update) {
 	// Then if we got a message
 	recvMsg := update.Message
 
@@ -64,69 +91,28 @@ func handleChannelTriggered(update tgbotapi.Update) {
 		return
 	}
 
-	// whether to reply
-	replyWhat := false
-	msg := ""
-	//msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
-
-	// process any non-command messages
-	if !recvMsg.IsCommand() {
-		log.Printf("[TEXT] %s", recvMsg.Text)
-		p := rand.Intn(100)
-		if p < 15 {
-			replyWhat = true
-			msg = recvMsg.Text + "个几把"
-		}
-	} else {
-		replyWhat = true
-		msg, err = callHandler(recvMsg.Command(), recvMsg.Text)
-		//switch recvMsg.Command() {
-		//case "help":
-		//	msg = "按 \"/\" 自己看"
-		//case "choice":
-		//	log.Printf("[CMD] %s", recvMsg.Text)
-		//	dices := strings.FieldsFunc(recvMsg.Text, ff)
-		//	if len(dices) == 1 {
-		//		msg = "你选寄吧呢"
-		//	} else if len(dices) == 2 {
-		//		msg = "就一个你选寄吧呢"
-		//	} else {
-		//		dices = dices[1:]
-		//		msg = dices[rand.Intn(len(dices))]
-		//	}
-		//case "status":
-		//	msg = "I'm 凹K."
-		//default:
-		//	msg = "你说寄吧呢"
-		//}
-	}
+	// Get message type
+	msgType := getMessageType(recvMsg)
+	respMsgText, replyWhat, _ := b.handlerMapper[msgType](recvMsg)
 
 	// log.Printf("[%s@%s] %s", recvMsg.From.UserName, recvMsg.Chat.ID, recvMsg.Text)
-
 	// msg := tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.Text)
 	if replyWhat {
-		go handleSendingMessage(update, msg)
+		log.Printf("[REPLY] %s", respMsgText)
+		replyMsg := tgbotapi.NewMessage(update.Message.Chat.ID, respMsgText)
+		replyMsg.ReplyToMessageID = update.Message.MessageID
+		// Put the replyMsg into sending queue
+		b.sendCh <- replyMsg
 	}
 }
 
-func addHandler(funName string, fun func(msg string) (string, error)) {
-	haveSomeFun[funName] = fun
+func getMessageType(recvMsg *tgbotapi.Message) uint8 {
+	if recvMsg.IsCommand() {
+		return MSG_TYPE_CMD
+	}
+	return MSG_TYPE_TEXT
 }
 
-func callHandler(funName string, msg string) (string, error) {
-	if haveSomeFun[funName] == nil {
-		return haveSomeFun["default"](msg)
-	}
-	return haveSomeFun[funName](msg)
-}
-
-func handleSendingMessage(update tgbotapi.Update, msg string) {
-	mutex.Lock()
-	defer mutex.Unlock()
-	replyMsg := tgbotapi.NewMessage(update.Message.Chat.ID, msg)
-	replyMsg.ReplyToMessageID = update.Message.MessageID
-	_, err = bot.Send(replyMsg)
-	if err != nil {
-		log.Fatalf("error sending msg: %s", err)
-	}
+func (b *BotServer) addMessageHandler(handleType uint8, f msgHandlerFunc) {
+	b.handlerMapper[handleType] = f
 }
