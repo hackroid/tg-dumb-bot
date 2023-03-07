@@ -5,6 +5,6 @@ func main() {
 	addHandler("help", help)
 	addHandler("choice", choice)
 	addHandler("status", status)
-	addHandler("ddefault", ddefault)
+	addHandler("default", ddefault)
 	startHandler()
 }
