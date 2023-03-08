@@ -1,4 +1,4 @@
-FROM houxianyj/go1.20.0-alpine3.17:1.0
+FROM golang:1.20.0-alpine3.17
 
 LABEL maintainer="Takayama"
 
