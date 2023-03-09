@@ -1,5 +1,8 @@
 FROM golang:1.20.0-alpine3.17
 
+ENV token="123456789:ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+ENV debug="1"
+
 LABEL maintainer="Takayama"
 
 COPY . /usr/local/go/src/BOT
@@ -11,6 +14,7 @@ RUN rm -rf bin && \
     go get github.com/joho/godotenv && \
     go mod tidy && \
     go build -o bin/ ./main/ && \
-    cp .env bin/
+    touch bin/.env && \
+    chmod +x run.sh
 
-CMD ["./bin/main"]
+CMD sh run.sh $token $debug
