@@ -28,7 +28,7 @@ jobs:
     - name: Build
       run: |
           ls ./
-          go build -v -o ./../../bin/ ./../../main/
+          go build -v -o ./bin/ ./main
 
 #     - name: Test
 #       run: go test -v ./...
