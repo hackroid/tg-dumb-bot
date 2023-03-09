@@ -12,7 +12,7 @@ go get github.com/joho/godotenv
 Paste your token into `.env` like:
 
 ```text
-TELEGRAM_APITOKEN=123456789:ABCDEFGHIJKLMNOPQRSTUVWXYZ
+TELEGRAM_APITOKEN=123456:ABCDEFGHIJKLMN
 DEBUG=1
 ```
 
@@ -32,5 +32,9 @@ nohup ./bin/main > ./test.log 2>&1 &
 > CI/CD on constructing
 
 ```shell
-docker compose up --build
+docker build . -t test
+# run on detach
+docker run -d -v /etc/localtime:/etc/localtime:ro -e token="123456:ABCDEFGHIJKLMN" test
+# run in foreground
+docker run -it -v /etc/localtime:/etc/localtime:ro -e token="123456:ABCDEFGHIJKLMN" test
 ```
