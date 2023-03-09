@@ -3,3 +3,5 @@ services:
   tgbot:
     restart: always
     build: .
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
