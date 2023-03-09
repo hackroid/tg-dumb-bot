@@ -1,4 +1,4 @@
 #!/bin/sh
-echo "TELEGRAM_APITOKEN=$1" >> bin/.env
-echo "DEBUG=$2" >> bin/.env
+echo "TELEGRAM_APITOKEN=$1" >> .env
+echo "DEBUG=$2" >> .env
 ./bin/main
