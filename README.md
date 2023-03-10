@@ -23,7 +23,7 @@ Then
 ```shell
 rm -rf bin
 go mod tidy
-go build -o bin/ ./main
+go build -o bin/ ./app/main
 nohup ./bin/main > ./test.log 2>&1 &
 ```
 
