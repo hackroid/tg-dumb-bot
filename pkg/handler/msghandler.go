@@ -1,4 +1,4 @@
-package main
+package handler
 
 import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -8,7 +8,7 @@ import (
 	"unicode"
 )
 
-func normalTextMessage(recvMsg *tgbotapi.Message) (string, bool, error) {
+func NormalTextMessage(recvMsg *tgbotapi.Message) (string, bool, error) {
 	log.Printf("[TEXT] %s", recvMsg.Text)
 	p := rand.Intn(100)
 	if p < 15 {
@@ -17,7 +17,7 @@ func normalTextMessage(recvMsg *tgbotapi.Message) (string, bool, error) {
 	return "", false, nil
 }
 
-func normalCommandMessage(recvMsg *tgbotapi.Message) (string, bool, error) {
+func NormalCommandMessage(recvMsg *tgbotapi.Message) (string, bool, error) {
 	splitter := func(r rune) bool { return unicode.IsSpace(r) }
 	var msg string
 	switch recvMsg.Command() {

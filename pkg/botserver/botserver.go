@@ -1,8 +1,8 @@
-package main
+package botserver
 
 import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"github.com/joho/godotenv"
+	"github.com/hackroid/tg-dumb-bot/pkg/constants"
 	"log"
 	"os"
 )
@@ -16,22 +16,14 @@ type BotServer struct {
 	updates       tgbotapi.UpdatesChannel
 }
 
-var (
-	MSG_TYPE_TEXT uint8 = 0
-	MSG_TYPE_CMD  uint8 = 1
-)
+func New() *BotServer {
+	return &BotServer{}
+}
 
-func (b *BotServer) initBot() {
-	log.Println("Starting tg-DUMB-bot ...")
+func (b *BotServer) InitBot() {
 	var err error
 
-	// Load global var
-	b.handlerMapper = make(map[uint8]msgHandlerFunc)
-
 	// Load env var
-	if err := godotenv.Load(); err != nil {
-		log.Fatal("Error loading .env file")
-	}
 	token := os.Getenv("TELEGRAM_APITOKEN")
 	debug := os.Getenv("DEBUG") == "1"
 
@@ -47,11 +39,12 @@ func (b *BotServer) initBot() {
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
 
+	// Load member var
+	b.sendCh = b.initSendQueue()
+	b.handlerMapper = make(map[uint8]msgHandlerFunc)
 	b.updates = b.bot.GetUpdatesChan(u)
 	b.updates.Clear()
-
-	b.initSendQueue()
-
+	
 	log.Println("Bot Initialization Complete")
 	log.Println("===============================")
 }
@@ -67,7 +60,7 @@ func (b *BotServer) pollingChannelUpdates() {
 	}
 }
 
-func (b *BotServer) initSendQueue() {
+func (b *BotServer) initSendQueue() chan tgbotapi.MessageConfig {
 	// This func makes a sending queue, wait for msg in channel
 	// and send it one by one
 	ch := make(chan tgbotapi.MessageConfig, 100)
@@ -79,7 +72,7 @@ func (b *BotServer) initSendQueue() {
 			}
 		}
 	}()
-	b.sendCh = ch
+	return ch
 }
 
 func (b *BotServer) handleChannelUpdate(update tgbotapi.Update) {
@@ -108,11 +101,15 @@ func (b *BotServer) handleChannelUpdate(update tgbotapi.Update) {
 
 func getMessageType(recvMsg *tgbotapi.Message) uint8 {
 	if recvMsg.IsCommand() {
-		return MSG_TYPE_CMD
+		return constants.MsgTypeCmd
 	}
-	return MSG_TYPE_TEXT
+	return constants.MsgTypeText
 }
 
-func (b *BotServer) addMessageHandler(handleType uint8, f msgHandlerFunc) {
+func (b *BotServer) AddMessageHandler(handleType uint8, f msgHandlerFunc) {
 	b.handlerMapper[handleType] = f
+}
+
+func (b *BotServer) Serve() {
+	b.pollingChannelUpdates()
 }

@@ -11,10 +11,10 @@ WORKDIR /usr/local/go/src/BOT
 
 RUN rm -rf bin && \
     rm -rf .env && \
-    go get -u github.com/go-telegram-bot-api/telegram-bot-api/v5 && \
+    go get github.com/go-telegram-bot-api/telegram-bot-api/v5 && \
     go get github.com/joho/godotenv && \
     go mod tidy && \
-    go build -o bin/ ./main/ && \
+    go build -o bin/ ./app/main/ && \
     touch .env && \
     chmod +x run.sh
 
