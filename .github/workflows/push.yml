@@ -1,4 +1,4 @@
-name: pull_request_closed_workflow
+name: push_workflow
 
 on:
   push:
