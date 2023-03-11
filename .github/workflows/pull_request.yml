@@ -1,0 +1,19 @@
+# This workflow will build a golang project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
+
+name: pull_request_workflow
+
+on:
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  go-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: call go-build workflow
+        uses: ./.github/actions/go
+

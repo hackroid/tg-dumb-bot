@@ -1,0 +1,18 @@
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: 1.19
+
+    - name: Install dependencies
+      shell: bash
+      run: |
+        go get github.com/go-telegram-bot-api/telegram-bot-api/v5
+        go get github.com/joho/godotenv
+
+    - name: Build
+      shell: bash
+      run: |
+        go build -v -o ./bin/ ./app/main
