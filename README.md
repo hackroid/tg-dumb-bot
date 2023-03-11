@@ -1,6 +1,6 @@
 # TG DUMB BOT
 
-[![test](https://github.com/hackroid/tg-dumb-bot/actions/workflows/pull_request_closed.yml/badge.svg)](https://github.com/hackroid/tg-dumb-bot/actions/workflows/pull_request_closed.yml)
+[![pull_request_closed](https://img.shields.io/github/actions/workflow/status/hackroid/tg-dumb-bot/pull_request_closed.yml)](https://github.com/hackroid/tg-dumb-bot/actions/workflows/pull_request_closed.yml)[![docker_pull](https://img.shields.io/docker/pulls/hackroid/tg-dumb-bot)](https://hub.docker.com/repository/docker/hackroid/tg-dumb-bot)[![issue](https://img.shields.io/github/issues/hackroid/tg-dumb-bot)](https://github.com/hackroid/tg-dumb-bot/issues)
 
 This is a funny tg dumb bot.
 
