@@ -1,0 +1,35 @@
+name: push_workflow
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+
+  go-build:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: call go-build workflow
+        uses: ./.github/actions/go
+
+  docker-build:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: call docker-build workflow
+        uses: ./.github/actions/docker
+
+  deploy:
+    needs: [ go-build, docker-build ]
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: call deploy workflow
+        uses: ./.github/actions/deploy
