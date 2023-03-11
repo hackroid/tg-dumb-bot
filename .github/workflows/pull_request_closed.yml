@@ -5,9 +5,7 @@ on:
     types: [closed]
     branches: [ "main" ]
 
-with:
-  DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-  DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+
 
 jobs:
 
@@ -39,3 +37,6 @@ jobs:
 
       - name: call deploy workflow
         uses: ./.github/actions/deploy
+        with:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
