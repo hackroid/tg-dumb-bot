@@ -1,6 +1,6 @@
 # TG DUMB BOT
 
-[![pull_request_closed](https://img.shields.io/github/actions/workflow/status/hackroid/tg-dumb-bot/pull_request_closed.yml)](https://github.com/hackroid/tg-dumb-bot/actions/workflows/pull_request_closed.yml)[![docker_pull](https://img.shields.io/docker/pulls/hackroid/tg-dumb-bot)](https://hub.docker.com/repository/docker/hackroid/tg-dumb-bot)[![issue](https://img.shields.io/github/issues/hackroid/tg-dumb-bot)](https://github.com/hackroid/tg-dumb-bot/issues)
+[![pull_request_closed](https://img.shields.io/github/actions/workflow/status/hackroid/tg-dumb-bot/pull_request_closed.yml)](https://github.com/hackroid/tg-dumb-bot/actions/workflows/pull_request_closed.yml)[![docker_pull](https://img.shields.io/docker/pulls/hackroid/tg-dumb-bot)](https://hub.docker.com/repository/docker/hackroid/tg-dumb-bot)[![issue](https://img.shields.io/github/issues/hackroid/tg-dumb-bot)](https://github.com/hackroid/tg-dumb-bot/issues)[![image](https://img.shields.io/github/license/hackroid/tg-dumb-bot)](https://github.com/hackroid/tg-dumb-bot/blob/main/LICENSE)![image](https://img.shields.io/github/last-commit/hackroid/tg-dumb-bot?color=red)
 
 This is a funny tg dumb bot.
 
