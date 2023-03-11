@@ -19,6 +19,6 @@ runs:
       with:
         context: .
         file: ./Dockerfile
-        platforms: linux/amd64
+        platforms: linux/amd64,linux/arm64,darwin/arm64
         push: true
-        tags: your_account_name/your_containner_name:latest
+        tags: hackroid/tg-dumb-bot: latest, hackroid/tg-dumb-bot:${{ github.run_number }}
