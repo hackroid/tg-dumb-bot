@@ -101,7 +101,7 @@ func (b *BotServer) handleChannelUpdate(update tgbotapi.Update) {
 
 func (b *BotServer) Serve() {
 	go b.pollingChannelUpdates()
-	//go b.cmd()
+	// go b.cmd()
 }
 
 func (b *BotServer) cmd() {
