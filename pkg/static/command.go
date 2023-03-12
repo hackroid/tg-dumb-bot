@@ -7,6 +7,8 @@ import (
 	"unicode"
 )
 
+var fenkeng *WeiboCrawler
+
 func NormalCommandMessage(content datatype.CommandContentRecv) (string, bool, error) {
 	splitter := func(r rune) bool { return unicode.IsSpace(r) }
 	var msg string
@@ -25,6 +27,10 @@ func NormalCommandMessage(content datatype.CommandContentRecv) (string, bool, er
 		}
 	case "status":
 		msg = "I'm 凹K."
+	case "weibo":
+		fenkeng = New()
+		fenkeng.InitWeiboCrawler()
+		msg = fenkeng.GetFenkengTrends(10)
 	default:
 		return "", false, nil
 	}
