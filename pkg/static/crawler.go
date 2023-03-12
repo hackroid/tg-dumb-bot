@@ -1,8 +1,14 @@
-package static
+package botserver
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/gocolly/colly/v2"
+	"github.com/hackroid/tg-dumb-bot/pkg/static"
+	"io"
 	"log"
+	"math/rand"
+	"os"
 	"time"
 )
 
@@ -13,14 +19,21 @@ type WeiboCrawler struct {
 	finish         chan byte   // When the crawler ends gracefully the end byte will be put in this channel.
 }
 
-func New() *WeiboCrawler {
+func GetCrawler() *WeiboCrawler {
 	return &WeiboCrawler{}
 }
 
 func (b *WeiboCrawler) InitWeiboCrawler() {
 	b.c = colly.NewCollector()
-	// set timeout 10s
-	b.c.SetRequestTimeout(10 * time.Second)
+	// Set timeout 5s
+	b.c.SetRequestTimeout(5 * time.Second)
+
+	// Set delay between requests
+	_ = b.c.Limit(&colly.LimitRule{
+		DomainGlob:  "*",
+		Parallelism: 2,
+		Delay:       5 * time.Second,
+	})
 
 	// When the crawler is finished it will call OnScraped()
 	b.c.OnScraped(func(r *colly.Response) {
@@ -30,7 +43,7 @@ func (b *WeiboCrawler) InitWeiboCrawler() {
 
 	// When a crawler error occurs it will call OnError()
 	b.c.OnError(func(r *colly.Response, err error) {
-		//fmt.Println(err)
+		// fmt.Println(err)
 		b.crawlErrorChan <- err
 		log.Printf("The crawler ends with an error. -> %s\n", err)
 	})
@@ -41,15 +54,16 @@ func (b *WeiboCrawler) InitWeiboCrawler() {
 		log.Printf("Parsing data -> %s\n", e.Text)
 	})
 
-	headers := map[string]string{
-		"user-agent":      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.83 Safari/537.36",
-		"authority":       "s.weibo.com",
-		"accept":          "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-		"accept-language": "zh-CN,zh;q=0.9,en;q=0.8,ja;q=0.7",
-		"cookie":          "UOR=www.google.com,open.weibo.com,www.google.com; SINAGLOBAL=2970299018191.4736.1678542597936; SUB=_2AkMTUAgef8NxqwJRmPkRyWrlZI5wzgHEieKlDPnFJRMxHRl-yT9kqhc5tRB6ONAm8UidViM1ATfHJXRQ_RuEAa6LFw5c; SUBP=0033WrSXqPxfM72-Ws9jqgMF55529P9D9W5dNrgevn7ahTl16nJeYxmX; _s_tentry=-; Apache=858229940677.7616.1678584988845; ULV=1678584988859:2:2:1:858229940677.7616.1678584988845:1678542598026",
-	}
 	// When a request is sent it will call OnRequest()
 	b.c.OnRequest(func(r *colly.Request) {
+		jsonFile, _ := os.Open("assets/web/sample_header.json")
+		defer static.CloseFile(jsonFile)
+		byteValue, _ := io.ReadAll(jsonFile)
+		var headers map[string]string
+		err := json.Unmarshal(byteValue, &headers)
+		if err != nil {
+			log.Fatalln("error parsing json")
+		}
 		for key, value := range headers {
 			r.Headers.Set(key, value)
 		}
@@ -65,7 +79,15 @@ func (b *WeiboCrawler) startCrawlFenkeng() ([]string, error) {
 	b.crawlErrorChan = make(chan error)
 	b.finish = make(chan byte)
 
-	go b.c.Visit("https://s.weibo.com/top/summary?cate=realtimehot")
+	// Random sleep in 1 second
+	time.Sleep(time.Duration(rand.Intn(1e9)))
+
+	go func() {
+		err := b.c.Visit("https://s.weibo.com/top/summary?cate=realtimehot")
+		if err != nil {
+
+		}
+	}()
 
 	for {
 		var breakFlag = false
@@ -85,23 +107,29 @@ func (b *WeiboCrawler) startCrawlFenkeng() ([]string, error) {
 	return topList, crawlError
 }
 
-func pack(msg string) string {
-	msg += "\nhttps://s.weibo.com/weibo?q=" + msg + "\n"
-	return msg
+func pack(msg string, i int) string {
+	hyperlink := fmt.Sprintf("<a href=\"https://s.weibo.com/weibo?q=%s\">%s</a>\n", msg, msg)
+	if i == 0 {
+		hyperlink = "上升趋势：" + hyperlink
+	} else {
+		hyperlink = fmt.Sprintf("%d. ", i) + hyperlink
+	}
+	return hyperlink
 }
 
 func (b *WeiboCrawler) GetFenkengTrends(count int) string {
-	toplist, err := b.startCrawlFenkeng()
-	currentTime := time.Now()
+	topList, err := b.startCrawlFenkeng()
 	var msg = "Get error"
-	var index = 0
+	if len(topList) < count+1 {
+		return msg
+	}
+	t := time.Now()
+	currentTimeString := t.Format("2006-01-02 15:04:05 MST")
 	if err == nil {
-		msg = currentTime.String() + "\n来自粪坑的top10热搜\n"
-		msg += "当前呈上升趋势的热搜词条\n" + pack(toplist[0])
-		for _, top := range toplist[1:] {
-			msg += pack(top)
-			index++
-			if count == index {
+		msg = fmt.Sprintf("来自粪坑的top10热搜(%s)\n", currentTimeString)
+		for i, top := range topList {
+			msg += pack(top, i)
+			if i == count {
 				break
 			}
 		}
