@@ -7,13 +7,14 @@ import (
 	"log"
 )
 
+// TextMessageHandler is for handling normal pure text message
 type TextMessageHandler struct {
-	recvMsg     *tgbotapi.Message
-	recvContent datatype.TextContentRecv
-	reply       bool
-	ok          bool
-	respContent datatype.TextContentResp
-	respMsg     tgbotapi.MessageConfig
+	recvMsg     *tgbotapi.Message        // recvMsg is reference of received tgbotapi.Message
+	recvContent datatype.TextContentRecv // recvContent is all content extracted from recvMsg and will be used later
+	reply       bool                     // reply is whether to use ReplyToMessageID
+	ok          bool                     // ok is whether to send this message
+	respContent datatype.TextContentResp // respContent is all content will be packed into respMsg
+	respMsg     tgbotapi.MessageConfig   // is the tgbotapi.MessageConfig object to be replied
 }
 
 func (h *TextMessageHandler) Extract() {
@@ -44,11 +45,13 @@ func (h *TextMessageHandler) Send(ch chan tgbotapi.MessageConfig) {
 	}
 }
 
+// CommandMessageHandler is for handling normal pure text message with command
 type CommandMessageHandler struct {
 	recvMsg     *tgbotapi.Message
 	recvContent datatype.CommandContentRecv
 	reply       bool
 	ok          bool
+	parseMode   string
 	respContent datatype.CommandContentResp
 	respMsg     tgbotapi.MessageConfig
 }
@@ -61,7 +64,7 @@ func (h *CommandMessageHandler) Extract() {
 }
 
 func (h *CommandMessageHandler) Generate() {
-	h.respContent.Text, h.ok, _ = static.NormalCommandMessage(h.recvContent)
+	h.respContent.Text, h.parseMode, h.ok, _ = static.ParseCommandMessage(h.recvContent)
 }
 
 func (h *CommandMessageHandler) Pack() {
@@ -72,6 +75,7 @@ func (h *CommandMessageHandler) Pack() {
 	h.respMsg = tgbotapi.NewMessage(h.recvMsg.Chat.ID, h.respContent.Text)
 
 	// End packing
+	h.respMsg.ParseMode = h.parseMode
 	if h.reply {
 		h.respMsg.ReplyToMessageID = h.recvMsg.MessageID
 	}
@@ -79,7 +83,7 @@ func (h *CommandMessageHandler) Pack() {
 
 func (h *CommandMessageHandler) Send(ch chan tgbotapi.MessageConfig) {
 	if h.ok {
-		log.Printf("[Replyed]\n")
+		log.Println("[Replied]", h.respMsg.ParseMode)
 		ch <- h.respMsg
 	}
 }
