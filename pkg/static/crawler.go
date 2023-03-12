@@ -1,10 +1,10 @@
-package botserver
+package static
 
 import (
 	"encoding/json"
 	"fmt"
 	"github.com/gocolly/colly/v2"
-	"github.com/hackroid/tg-dumb-bot/pkg/static"
+	"github.com/hackroid/tg-dumb-bot/pkg/utils"
 	"io"
 	"log"
 	"math/rand"
@@ -25,15 +25,16 @@ func GetCrawler() *WeiboCrawler {
 
 func (b *WeiboCrawler) InitWeiboCrawler() {
 	b.c = colly.NewCollector()
+
 	// Set timeout 5s
 	b.c.SetRequestTimeout(5 * time.Second)
 
 	// Set delay between requests
-	_ = b.c.Limit(&colly.LimitRule{
-		DomainGlob:  "*",
-		Parallelism: 2,
-		Delay:       5 * time.Second,
-	})
+	// _ = b.c.Limit(&colly.LimitRule{
+	// 	DomainGlob:  "*",
+	// 	Parallelism: 2,
+	// 	Delay:       5 * time.Second,
+	// })
 
 	// When the crawler is finished it will call OnScraped()
 	b.c.OnScraped(func(r *colly.Response) {
@@ -57,7 +58,7 @@ func (b *WeiboCrawler) InitWeiboCrawler() {
 	// When a request is sent it will call OnRequest()
 	b.c.OnRequest(func(r *colly.Request) {
 		jsonFile, _ := os.Open("assets/web/sample_header.json")
-		defer static.CloseFile(jsonFile)
+		defer utils.CloseFile(jsonFile)
 		byteValue, _ := io.ReadAll(jsonFile)
 		var headers map[string]string
 		err := json.Unmarshal(byteValue, &headers)
@@ -82,12 +83,7 @@ func (b *WeiboCrawler) startCrawlFenkeng() ([]string, error) {
 	// Random sleep in 1 second
 	time.Sleep(time.Duration(rand.Intn(1e9)))
 
-	go func() {
-		err := b.c.Visit("https://s.weibo.com/top/summary?cate=realtimehot")
-		if err != nil {
-
-		}
-	}()
+	go func() { _ = b.c.Visit("https://s.weibo.com/top/summary?cate=realtimehot") }()
 
 	for {
 		var breakFlag = false
@@ -107,16 +103,6 @@ func (b *WeiboCrawler) startCrawlFenkeng() ([]string, error) {
 	return topList, crawlError
 }
 
-func pack(msg string, i int) string {
-	hyperlink := fmt.Sprintf("<a href=\"https://s.weibo.com/weibo?q=%s\">%s</a>\n", msg, msg)
-	if i == 0 {
-		hyperlink = "上升趋势：" + hyperlink
-	} else {
-		hyperlink = fmt.Sprintf("%d. ", i) + hyperlink
-	}
-	return hyperlink
-}
-
 func (b *WeiboCrawler) GetFenkengTrends(count int) string {
 	topList, err := b.startCrawlFenkeng()
 	var msg = "Get error"
@@ -128,11 +114,21 @@ func (b *WeiboCrawler) GetFenkengTrends(count int) string {
 	if err == nil {
 		msg = fmt.Sprintf("来自粪坑的top10热搜(%s)\n", currentTimeString)
 		for i, top := range topList {
-			msg += pack(top, i)
+			msg += embedLink(top, i)
 			if i == count {
 				break
 			}
 		}
 	}
 	return msg
+}
+
+func embedLink(msg string, i int) string {
+	hyperlink := fmt.Sprintf("<a href=\"https://s.weibo.com/weibo?q=%s\">%s</a>\n", msg, msg)
+	if i == 0 {
+		hyperlink = "上升趋势：" + hyperlink
+	} else {
+		hyperlink = fmt.Sprintf("%d. ", i) + hyperlink
+	}
+	return hyperlink
 }
