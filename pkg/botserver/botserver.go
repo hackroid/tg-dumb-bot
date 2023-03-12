@@ -1,8 +1,10 @@
 package botserver
 
 import (
+	"bufio"
+	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"github.com/hackroid/tg-dumb-bot/pkg/constants"
+	"github.com/hackroid/tg-dumb-bot/pkg/handler"
 	"log"
 	"os"
 )
@@ -44,20 +46,9 @@ func (b *BotServer) InitBot() {
 	b.handlerMapper = make(map[uint8]msgHandlerFunc)
 	b.updates = b.bot.GetUpdatesChan(u)
 	b.updates.Clear()
-	
+
 	log.Println("Bot Initialization Complete")
 	log.Println("===============================")
-}
-
-func (b *BotServer) pollingChannelUpdates() {
-	for update := range b.updates {
-		// Ignore any non-Message updates
-		if update.Message == nil {
-			continue
-		}
-
-		go b.handleChannelUpdate(update)
-	}
 }
 
 func (b *BotServer) initSendQueue() chan tgbotapi.MessageConfig {
@@ -75,6 +66,17 @@ func (b *BotServer) initSendQueue() chan tgbotapi.MessageConfig {
 	return ch
 }
 
+func (b *BotServer) pollingChannelUpdates() {
+	for update := range b.updates {
+		// Ignore any non-Message updates
+		if update.Message == nil {
+			continue
+		}
+
+		go b.handleChannelUpdate(update)
+	}
+}
+
 func (b *BotServer) handleChannelUpdate(update tgbotapi.Update) {
 	// Then if we got a message
 	recvMsg := update.Message
@@ -84,32 +86,31 @@ func (b *BotServer) handleChannelUpdate(update tgbotapi.Update) {
 		return
 	}
 
-	// Get message type
-	msgType := getMessageType(recvMsg)
-	respMsgText, replyWhat, _ := b.handlerMapper[msgType](recvMsg)
-
-	// log.Printf("[%s@%s] %s", recvMsg.From.UserName, recvMsg.Chat.ID, recvMsg.Text)
-	// msg := tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.Text)
-	if replyWhat {
-		log.Printf("[REPLY] %s\n", respMsgText)
-		replyMsg := tgbotapi.NewMessage(update.Message.Chat.ID, respMsgText)
-		replyMsg.ReplyToMessageID = update.Message.MessageID
-		// Put the replyMsg into sending queue
-		b.sendCh <- replyMsg
+	// Get message handler
+	h, _ := handler.GetMessageHandler(recvMsg)
+	if h == nil {
+		return
 	}
-}
 
-func getMessageType(recvMsg *tgbotapi.Message) uint8 {
-	if recvMsg.IsCommand() {
-		return constants.MsgTypeCmd
-	}
-	return constants.MsgTypeText
-}
-
-func (b *BotServer) AddMessageHandler(handleType uint8, f msgHandlerFunc) {
-	b.handlerMapper[handleType] = f
+	// Handler execution
+	h.Extract()
+	h.Generate()
+	h.Pack()
+	h.Send(b.sendCh)
 }
 
 func (b *BotServer) Serve() {
-	b.pollingChannelUpdates()
+	go b.pollingChannelUpdates()
+	go b.cmd()
+}
+
+func (b *BotServer) cmd() {
+	var s string
+	reader := bufio.NewReader(os.Stdin)
+
+	for {
+		// fmt.Print("> ")
+		s, _ = reader.ReadString('\n')
+		fmt.Printf("Hello, %s", s)
+	}
 }

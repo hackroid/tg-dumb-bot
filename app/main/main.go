@@ -2,11 +2,12 @@ package main
 
 import (
 	"github.com/hackroid/tg-dumb-bot/pkg/botserver"
-	"github.com/hackroid/tg-dumb-bot/pkg/constants"
-	"github.com/hackroid/tg-dumb-bot/pkg/handler"
 	"github.com/joho/godotenv"
 	"log"
+	"os"
+	"os/signal"
 	"runtime"
+	"syscall"
 )
 
 func init() {
@@ -16,12 +17,15 @@ func init() {
 }
 
 func main() {
+	gracefulShutdown := make(chan os.Signal, 1)
+	signal.Notify(gracefulShutdown, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL)
+
 	log.Printf("Start tg-DUMB-bot version #TODO; Go %s (%s/%s)\n",
 		runtime.Version(), runtime.GOOS, runtime.GOARCH)
-
 	bs := botserver.New()
 	bs.InitBot()
-	bs.AddMessageHandler(constants.MsgTypeCmd, handler.NormalCommandMessage)
-	bs.AddMessageHandler(constants.MsgTypeText, handler.NormalTextMessage)
 	bs.Serve()
+
+	<-gracefulShutdown
+	log.Println("Dumb Bot Stopped, Bye!")
 }

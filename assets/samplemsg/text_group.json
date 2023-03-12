@@ -1,0 +1,16 @@
+{
+  "message_id": 1234,
+  "from": {
+    "id": 12345678,
+    "is_bot": false,
+    "first_name": "\u5927\u5c71",
+    "last_name": "bot"
+  },
+  "chat": {
+    "id": -1001200230033,
+    "title": "Public Dumb",
+    "type": "supergroup"
+  },
+  "date": 1678530000,
+  "text": "good group text"
+}

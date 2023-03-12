@@ -1,0 +1,18 @@
+{
+  "message_id": 1234,
+  "from": {
+    "id": 12345678,
+    "is_bot": false,
+    "first_name": "Alice",
+    "username": "alic3",
+    "language_code": "en"
+  },
+  "chat": {
+    "id": 12345678,
+    "first_name": "Alice",
+    "username": "alic3",
+    "type": "private"
+  },
+  "date": 1678530000,
+  "text": "good"
+}

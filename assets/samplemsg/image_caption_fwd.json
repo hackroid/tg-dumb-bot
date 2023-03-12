@@ -1,0 +1,68 @@
+{
+  "message_id": 1390,
+  "from": {
+    "id": 12345678,
+    "is_bot": false,
+    "first_name": "Alice",
+    "username": "alic3",
+    "language_code": "en"
+  },
+  "chat": {
+    "id": 12345678,
+    "first_name": "Alice",
+    "username": "alic3",
+    "type": "private"
+  },
+  "date": 1678530000,
+  "forward_from": {
+    "id": 12345678,
+    "is_bot": false,
+    "first_name": "Alice",
+    "username": "alic3",
+    "language_code": "en"
+  },
+  "forward_date": 1678510000,
+  "photo": [
+    {
+      "file_id": "AgACAgEAAxkBAAIFbGQMbNr00lZkukP7cwADLwQ",
+      "file_unique_id": "AQADOasxG4",
+      "file_size": 1845,
+      "width": 90,
+      "height": 90
+    },
+    {
+      "file_id": "AgACAgEAAxkBAAIFbGQMbNr00lZkukP7bQADLwQ",
+      "file_unique_id": "AQADOasxGy",
+      "file_size": 24882,
+      "width": 320,
+      "height": 320
+    },
+    {
+      "file_id": "AgACAgEAAxkBAAIFbGQMbNr00lZkukP7eAADLwQ",
+      "file_unique_id": "AQADOasxG9",
+      "file_size": 82448,
+      "width": 800,
+      "height": 800
+    },
+    {
+      "file_id": "AgACAgEAAxkBAAIFbGQMbNr00lZkukP7eQADLwQ",
+      "file_unique_id": "AQADOasxG-",
+      "file_size": 120222,
+      "width": 1280,
+      "height": 1280
+    }
+  ],
+  "caption": "@Alices @abcd1234",
+  "caption_entities": [
+    {
+      "offset": 0,
+      "length": 7,
+      "type": "mention"
+    },
+    {
+      "offset": 8,
+      "length": 9,
+      "type": "mention"
+    }
+  ]
+}
