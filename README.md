@@ -4,6 +4,20 @@
 
 This is a funny tg dumb bot.
 
+## Features
+
+> **Warning**  
+> All code only for reference.  
+> Check CAREFULLY before deployment.
+
+♻️ Using `weibo` command can feed you the TOP10 RUBBISH on Weibo platform RIGHT NOW!
+
+🎲 The `choice` command gives you a random choice between serveral space-sperated options.
+
+🤡 This bot will also randomly reply "Surprise Sunshine Boy!" to a new arrived message in the group with a probability of 0.15.
+
+Propose your function now with a single PR.
+
 ## Usage
 
 ### Build from source
