@@ -2,13 +2,12 @@ package static
 
 import (
 	"github.com/hackroid/tg-dumb-bot/pkg/datatype"
-	"log"
 	"math/rand"
 	"strings"
 	"unicode"
 )
 
-var fenkeng *WeiboCrawler
+//var fenkeng *utils.WeiboCrawler
 
 func ParseCommandMessage(content datatype.CommandContentRecv) (string, string, bool, error) {
 	splitter := func(r rune) bool { return unicode.IsSpace(r) }
@@ -30,14 +29,14 @@ func ParseCommandMessage(content datatype.CommandContentRecv) (string, string, b
 		}
 	case "status":
 		msg = "I'm 凹K."
-	case "weibo":
-		fenkeng = GetCrawler()
-		fenkeng.InitWeiboCrawler()
-		msg, err = fenkeng.GetFenkengTrends(10)
-		if err != nil {
-			log.Printf("Err: %v\n", err)
-		}
-		parseMode = "HTML"
+	//case "weibo":
+	//	fenkeng = utils.GetWeiboCrawler()
+	//	fenkeng.InitWeiboCrawler()
+	//	msg, err = fenkeng.GetFenkengTrends(10)
+	//	if err != nil {
+	//		log.Printf("Err: %v\n", err)
+	//	}
+	//	parseMode = "HTML"
 	default:
 		return msg, parseMode, false, err
 	}

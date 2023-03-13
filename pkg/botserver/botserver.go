@@ -5,8 +5,10 @@ import (
 	"fmt"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/hackroid/tg-dumb-bot/pkg/handler"
+	"github.com/hackroid/tg-dumb-bot/pkg/utils"
 	"log"
 	"os"
+	"time"
 )
 
 type msgHandlerFunc func(recvMsg *tgbotapi.Message) (string, bool, error)
@@ -16,6 +18,7 @@ type BotServer struct {
 	sendCh        chan tgbotapi.MessageConfig
 	handlerMapper map[uint8]msgHandlerFunc
 	updates       tgbotapi.UpdatesChannel
+	timerInterval time.Duration
 }
 
 func New() *BotServer {
@@ -46,6 +49,7 @@ func (b *BotServer) InitBot() {
 	b.handlerMapper = make(map[uint8]msgHandlerFunc)
 	b.updates = b.bot.GetUpdatesChan(u)
 	b.updates.Clear()
+	b.timerInterval = 10 * time.Second
 
 	log.Println("Bot Initialization Complete")
 	log.Println("===============================")
@@ -99,8 +103,31 @@ func (b *BotServer) handleChannelUpdate(update tgbotapi.Update) {
 	h.Send(b.sendCh)
 }
 
+func (b *BotServer) pollingTimerTasks() {
+	timerTasks := utils.GetTimerTasksList()
+
+	for _, timertask := range timerTasks {
+		timertask.Init()
+	}
+
+	// When the timer clock rings, it puts a data into the timer.C channel.
+	timer := time.NewTimer(b.timerInterval)
+	for {
+		select {
+		case <-timer.C:
+			for _, timertask := range timerTasks {
+				// you can handle these msgs here. (send ... etc)
+				log.Printf("crawling -> %s\n", timertask.GetMsg())
+			}
+			timer.Reset(b.timerInterval)
+		}
+	}
+}
+
 func (b *BotServer) Serve() {
 	go b.pollingChannelUpdates()
+	// Start timer tasks
+	go b.pollingTimerTasks()
 	// go b.cmd()
 }
 

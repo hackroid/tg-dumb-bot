@@ -1,10 +1,9 @@
-package static
+package utils
 
 import (
 	"encoding/json"
 	"fmt"
 	"github.com/gocolly/colly/v2"
-	"github.com/hackroid/tg-dumb-bot/pkg/utils"
 	"io"
 	"log"
 	"math/rand"
@@ -21,8 +20,17 @@ type WeiboCrawler struct {
 	maxTry         int
 }
 
-func GetCrawler() *WeiboCrawler {
+func GetWeiboCrawler() *WeiboCrawler {
 	return &WeiboCrawler{}
+}
+
+func (b *WeiboCrawler) Init() {
+	b.InitWeiboCrawler()
+}
+
+func (b *WeiboCrawler) GetMsg() string {
+	msg, _ := b.GetFenkengTrends(10)
+	return msg
 }
 
 func (b *WeiboCrawler) InitWeiboCrawler() {
@@ -144,6 +152,6 @@ func embedLink(msg string, i int) string {
 
 func (b *WeiboCrawler) readHeaders() {
 	jsonFile, _ := os.Open("assets/web/sample_header.json")
-	defer utils.CloseFile(jsonFile)
+	defer CloseFile(jsonFile)
 	b.headers, _ = io.ReadAll(jsonFile)
 }
