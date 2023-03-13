@@ -17,6 +17,7 @@ type WeiboCrawler struct {
 	topListChan    chan string // New matching items are put in this channel when they are crawled.
 	crawlErrorChan chan error  // When an error occurs, the error will be put in this channel.
 	finish         chan byte   // When the crawler ends gracefully the end byte will be put in this channel.
+	headers        []byte
 }
 
 func GetCrawler() *WeiboCrawler {
@@ -24,7 +25,11 @@ func GetCrawler() *WeiboCrawler {
 }
 
 func (b *WeiboCrawler) InitWeiboCrawler() {
-	b.c = colly.NewCollector()
+	b.readHeaders()
+
+	b.c = colly.NewCollector(
+		colly.AllowURLRevisit(),
+	)
 
 	// Set timeout 5s
 	b.c.SetRequestTimeout(5 * time.Second)
@@ -57,11 +62,8 @@ func (b *WeiboCrawler) InitWeiboCrawler() {
 
 	// When a request is sent it will call OnRequest()
 	b.c.OnRequest(func(r *colly.Request) {
-		jsonFile, _ := os.Open("assets/web/sample_header.json")
-		defer utils.CloseFile(jsonFile)
-		byteValue, _ := io.ReadAll(jsonFile)
 		var headers map[string]string
-		err := json.Unmarshal(byteValue, &headers)
+		err := json.Unmarshal(b.headers, &headers)
 		if err != nil {
 			log.Fatalln("error parsing json")
 		}
@@ -104,10 +106,14 @@ func (b *WeiboCrawler) startCrawlFenkeng() ([]string, error) {
 }
 
 func (b *WeiboCrawler) GetFenkengTrends(count int) string {
-	topList, err := b.startCrawlFenkeng()
+	var topList []string
+	var err error
 	var msg = "Get error"
-	if len(topList) < count+1 {
-		return msg
+	for len(topList) < count+1 {
+		topList, err = b.startCrawlFenkeng()
+		if err != nil{
+			return msg
+		}
 	}
 	t := time.Now()
 	currentTimeString := t.Format("2006-01-02 15:04:05 MST")
@@ -131,4 +137,10 @@ func embedLink(msg string, i int) string {
 		hyperlink = fmt.Sprintf("%d. ", i) + hyperlink
 	}
 	return hyperlink
+}
+
+func (b *WeiboCrawler) readHeaders() {
+	jsonFile, _ := os.Open("assets/web/sample_header.json")
+	defer utils.CloseFile(jsonFile)
+	b.headers, _ = io.ReadAll(jsonFile)
 }
