@@ -17,6 +17,8 @@ type WeiboCrawler struct {
 	topListChan    chan string // New matching items are put in this channel when they are crawled.
 	crawlErrorChan chan error  // When an error occurs, the error will be put in this channel.
 	finish         chan byte   // When the crawler ends gracefully the end byte will be put in this channel.
+	headers        []byte
+	maxTry         int
 }
 
 func GetCrawler() *WeiboCrawler {
@@ -24,7 +26,11 @@ func GetCrawler() *WeiboCrawler {
 }
 
 func (b *WeiboCrawler) InitWeiboCrawler() {
-	b.c = colly.NewCollector()
+	b.readHeaders()
+
+	b.c = colly.NewCollector(
+		colly.AllowURLRevisit(),
+	)
 
 	// Set timeout 5s
 	b.c.SetRequestTimeout(5 * time.Second)
@@ -57,11 +63,8 @@ func (b *WeiboCrawler) InitWeiboCrawler() {
 
 	// When a request is sent it will call OnRequest()
 	b.c.OnRequest(func(r *colly.Request) {
-		jsonFile, _ := os.Open("assets/web/sample_header.json")
-		defer utils.CloseFile(jsonFile)
-		byteValue, _ := io.ReadAll(jsonFile)
 		var headers map[string]string
-		err := json.Unmarshal(byteValue, &headers)
+		err := json.Unmarshal(b.headers, &headers)
 		if err != nil {
 			log.Fatalln("error parsing json")
 		}
@@ -69,6 +72,8 @@ func (b *WeiboCrawler) InitWeiboCrawler() {
 			r.Headers.Set(key, value)
 		}
 	})
+
+	b.maxTry = 5
 }
 
 func (b *WeiboCrawler) startCrawlFenkeng() ([]string, error) {
@@ -79,9 +84,6 @@ func (b *WeiboCrawler) startCrawlFenkeng() ([]string, error) {
 	b.topListChan = make(chan string)
 	b.crawlErrorChan = make(chan error)
 	b.finish = make(chan byte)
-
-	// Random sleep in 1 second
-	time.Sleep(time.Duration(rand.Intn(1e9)))
 
 	go func() { _ = b.c.Visit("https://s.weibo.com/top/summary?cate=realtimehot") }()
 
@@ -103,11 +105,18 @@ func (b *WeiboCrawler) startCrawlFenkeng() ([]string, error) {
 	return topList, crawlError
 }
 
-func (b *WeiboCrawler) GetFenkengTrends(count int) string {
-	topList, err := b.startCrawlFenkeng()
+func (b *WeiboCrawler) GetFenkengTrends(count int) (string, error) {
+	var topList []string
+	var err error
 	var msg = "Get error"
-	if len(topList) < count+1 {
-		return msg
+	for try := 0; len(topList) < count+1; try++ {
+		// Random sleep in 1 second
+		time.Sleep(time.Duration(rand.Intn(1e9)))
+		topList, err = b.startCrawlFenkeng()
+		// return error msg if error when crawling or no content after b.maxTry times
+		if err != nil || try > b.maxTry {
+			return msg, err
+		}
 	}
 	t := time.Now()
 	currentTimeString := t.Format("2006-01-02 15:04:05 MST")
@@ -120,7 +129,7 @@ func (b *WeiboCrawler) GetFenkengTrends(count int) string {
 			}
 		}
 	}
-	return msg
+	return msg, nil
 }
 
 func embedLink(msg string, i int) string {
@@ -131,4 +140,10 @@ func embedLink(msg string, i int) string {
 		hyperlink = fmt.Sprintf("%d. ", i) + hyperlink
 	}
 	return hyperlink
+}
+
+func (b *WeiboCrawler) readHeaders() {
+	jsonFile, _ := os.Open("assets/web/sample_header.json")
+	defer utils.CloseFile(jsonFile)
+	b.headers, _ = io.ReadAll(jsonFile)
 }
