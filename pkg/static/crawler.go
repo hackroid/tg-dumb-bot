@@ -18,6 +18,7 @@ type WeiboCrawler struct {
 	crawlErrorChan chan error  // When an error occurs, the error will be put in this channel.
 	finish         chan byte   // When the crawler ends gracefully the end byte will be put in this channel.
 	headers        []byte
+	maxTry         int
 }
 
 func GetCrawler() *WeiboCrawler {
@@ -71,6 +72,8 @@ func (b *WeiboCrawler) InitWeiboCrawler() {
 			r.Headers.Set(key, value)
 		}
 	})
+
+	b.maxTry = 5
 }
 
 func (b *WeiboCrawler) startCrawlFenkeng() ([]string, error) {
@@ -81,9 +84,6 @@ func (b *WeiboCrawler) startCrawlFenkeng() ([]string, error) {
 	b.topListChan = make(chan string)
 	b.crawlErrorChan = make(chan error)
 	b.finish = make(chan byte)
-
-	// Random sleep in 1 second
-	time.Sleep(time.Duration(rand.Intn(1e9)))
 
 	go func() { _ = b.c.Visit("https://s.weibo.com/top/summary?cate=realtimehot") }()
 
@@ -105,14 +105,17 @@ func (b *WeiboCrawler) startCrawlFenkeng() ([]string, error) {
 	return topList, crawlError
 }
 
-func (b *WeiboCrawler) GetFenkengTrends(count int) string {
+func (b *WeiboCrawler) GetFenkengTrends(count int) (string, error) {
 	var topList []string
 	var err error
 	var msg = "Get error"
-	for len(topList) < count+1 {
+	for try := 0; len(topList) < count+1; try++ {
+		// Random sleep in 1 second
+		time.Sleep(time.Duration(rand.Intn(1e9)))
 		topList, err = b.startCrawlFenkeng()
-		if err != nil{
-			return msg
+		// return error msg if error when crawling or no content after b.maxTry times
+		if err != nil || try > b.maxTry {
+			return msg, err
 		}
 	}
 	t := time.Now()
@@ -126,7 +129,7 @@ func (b *WeiboCrawler) GetFenkengTrends(count int) string {
 			}
 		}
 	}
-	return msg
+	return msg, nil
 }
 
 func embedLink(msg string, i int) string {
