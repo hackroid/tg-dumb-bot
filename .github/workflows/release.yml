@@ -1,9 +1,8 @@
-name: pull_request_closed_workflow
+name: release_workflow
 
 on:
-  pull_request:
-    types: [closed]
-    branches: [ "main" ]
+  release:
+    types: [ published ]
 
 jobs:
 
@@ -29,7 +28,6 @@ jobs:
     needs: [ go-build, docker-build ]
     timeout-minutes: 10
     runs-on: ubuntu-latest
-    if: ${{ github.event.pull_request.merged }}
     steps:
       - uses: actions/checkout@v3
 
