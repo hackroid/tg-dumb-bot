@@ -25,16 +25,16 @@ jobs:
       - name: call docker-build workflow
         uses: ./.github/actions/docker
 
-  deploy:
-    needs: [ go-build, docker-build ]
-    timeout-minutes: 10
-    runs-on: ubuntu-latest
-    if: ${{ github.event.pull_request.merged }}
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: call deploy workflow
-        uses: ./.github/actions/deploy
-        with:
-          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+#  deploy:
+#    needs: [ go-build, docker-build ]
+#    timeout-minutes: 10
+#    runs-on: ubuntu-latest
+#    if: ${{ github.event.pull_request.merged }}
+#    steps:
+#      - uses: actions/checkout@v3
+#
+#      - name: call deploy workflow
+#        uses: ./.github/actions/deploy
+#        with:
+#          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+#          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
