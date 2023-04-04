@@ -1,7 +1,12 @@
 runs:
   using: "composite"
   steps:
-    - name: build dockerfile
+    - name: build tgbot_dockerfile
       shell: bash
       run: |
-        docker build . -t test
+        docker build -f tgbotDockerfile . -t test0
+
+#    - name: build another_dockerfile
+#      shell: bash
+#      run: |
+#        docker build -f anotherDockerfile . -t test1

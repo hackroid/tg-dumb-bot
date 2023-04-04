@@ -1,0 +1,13 @@
+version: "3"
+services:
+  tgbot:
+    restart: always
+    image: hackroid/tg-dumb-bot
+    environment:
+      - token=${token}
+      - debug=${debug}
+#    depends_on:
+#      - another_service
+#  another_service:
+#    restart: always
+#    image: hackroid/another_image
