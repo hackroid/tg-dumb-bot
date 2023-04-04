@@ -6,6 +6,8 @@ services:
     environment:
       - token=${token}
       - debug=${debug}
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
 #    depends_on:
 #      - another_service
 #  another_service:
