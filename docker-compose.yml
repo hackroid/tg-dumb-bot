@@ -2,14 +2,20 @@ version: "3"
 services:
   tgbot:
     restart: always
-    image: hackroid/tg-dumb-bot
+    build:
+      context: .
+      dockerfile: tgbotDockerfile
+#    image: hackroid/tg-dumb-bot
     environment:
       - token=${token}
       - debug=${debug}
     volumes:
       - /etc/localtime:/etc/localtime:ro
-#    depends_on:
-#      - another_service
-#  another_service:
-#    restart: always
-#    image: hackroid/another_image
+    depends_on:
+      - pppixiv
+  pppixiv:
+    restart: always
+    image: godmountain/pppixiv:latest
+    environment:
+      - username=${username}
+      - password=${password}

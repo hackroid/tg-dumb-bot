@@ -38,6 +38,9 @@ func ParseCommandMessage(content datatype.CommandContentRecv) (string, string, b
 			log.Printf("Err: %v\n", err)
 		}
 		parseMode = "HTML"
+	case "pixiv":
+		// only for test
+		test_pppixiv()
 	default:
 		return msg, parseMode, false, err
 	}
