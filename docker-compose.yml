@@ -1,0 +1,21 @@
+version: "3"
+services:
+  tgbot:
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile
+    #    image: hackroid/tg-dumb-bot
+    environment:
+      - token=${token}
+      - debug=${debug}
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+    depends_on:
+      - pixiv
+  pixiv:
+    restart: always
+    image: godmountain/pppixiv:latest
+    environment:
+      - username=${username}
+      - password=${password}

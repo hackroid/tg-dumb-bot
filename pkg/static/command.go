@@ -38,6 +38,14 @@ func ParseCommandMessage(content datatype.CommandContentRecv) (string, string, b
 			log.Printf("Err: %v\n", err)
 		}
 		parseMode = "HTML"
+	case "pranking":
+		dices := strings.FieldsFunc(content.Text, splitter)
+		msg, err = getByPixivRankingMode(dices[1])
+	case "ptags":
+		msg, err = getPixivTags()
+	case "puid":
+		dices := strings.FieldsFunc(content.Text, splitter)
+		msg, err = getByPixivUid(dices[1])
 	default:
 		return msg, parseMode, false, err
 	}
