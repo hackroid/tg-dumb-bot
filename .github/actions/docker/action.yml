@@ -4,5 +4,4 @@ runs:
     - name: build dockerfile
       shell: bash
       run: |
-        docker build --platform linux/arm64 . -t test0
-        docker build --platform linux/amd64 . -t test1
+        docker build . -t test
