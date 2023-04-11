@@ -1,4 +1,4 @@
-FROM golang:1.20.2-bullseye
+FROM golang:1.20.2-alpine3.17
 
 ENV token="123456789:ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 ENV debug="1"
