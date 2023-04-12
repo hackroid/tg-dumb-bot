@@ -2,10 +2,7 @@ version: "3"
 services:
   tgbot:
     restart: always
-    build:
-      context: .
-      dockerfile: Dockerfile
-    #    image: hackroid/tg-dumb-bot
+    image: hackroid/tg-dumb-bot:latest
     environment:
       - token=${token}
       - debug=${debug}

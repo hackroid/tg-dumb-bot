@@ -40,12 +40,20 @@ func ParseCommandMessage(content datatype.CommandContentRecv) (string, string, b
 		parseMode = "HTML"
 	case "pranking":
 		dices := strings.FieldsFunc(content.Text, splitter)
-		msg, err = getByPixivRankingMode(dices[1])
+		if len(dices) == 1 {
+			msg = "plz give me a mode type!(mode: day, week, month, day_male, day_female, week_original, week_rookie, day_manga)"
+		} else {
+			msg, err = getByPixivRankingMode(dices[1])
+		}
 	case "ptags":
 		msg, err = getPixivTags()
 	case "puid":
 		dices := strings.FieldsFunc(content.Text, splitter)
-		msg, err = getByPixivUid(dices[1])
+		if len(dices) == 1 {
+			msg = "plz give me an uid!"
+		} else {
+			msg, err = getByPixivUid(dices[1])
+		}
 	default:
 		return msg, parseMode, false, err
 	}
