@@ -32,7 +32,6 @@ func request(req *http.Request) ([]byte, error) {
 	var body []byte
 	client := &http.Client{}
 	resp, err := client.Do(req)
-	defer resp.Body.Close()
 	if err != nil {
 		log.Printf("%s", err)
 	} else {
@@ -40,6 +39,7 @@ func request(req *http.Request) ([]byte, error) {
 		if err != nil {
 			log.Printf("%s", err)
 		}
+		resp.Body.Close()
 	}
 	return body, err
 }
