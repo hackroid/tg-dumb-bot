@@ -2,6 +2,7 @@ package static
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"math/rand"
@@ -62,10 +63,8 @@ func parseDataAndGenerateMsg(api string, body []byte) (string, error) {
 		if err != nil {
 			log.Printf("%s", err)
 		} else {
-			msg = ""
-			for _, item := range res.List {
-				msg += item.Tag + "\n"
-			}
+			idx := rand.Intn(len(res.List))
+			msg = fmt.Sprintf("你今日的幸运xp是%s (%s)!", res.List[idx].Tag, res.List[idx].TranslatedTag)
 		}
 	}
 	return msg, err
