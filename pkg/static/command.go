@@ -54,6 +54,13 @@ func ParseCommandMessage(content datatype.CommandContentRecv) (string, string, b
 		} else {
 			msg, err = getByPixivUid(dices[1])
 		}
+	case "illust":
+		dices := strings.FieldsFunc(content.Text, splitter)
+		if len(dices) == 1 {
+			msg = "plz give me an illustId!"
+		} else {
+			msg, err = getByillustId(dices[1])
+		}
 	default:
 		return msg, parseMode, false, err
 	}
