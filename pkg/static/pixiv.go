@@ -107,3 +107,7 @@ func getByPixivRankingMode(mode string) (string, error) {
 func getPixivTags() (string, error) {
 	return handleRequest("GET", "", "", "getTrendingTags")
 }
+
+func getByillustId(illustId string) (string, error) {
+	return handleRequest("POST", "illust_id", illustId, "getIllustDownloadUrl")
+}
