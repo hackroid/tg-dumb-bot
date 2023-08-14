@@ -65,3 +65,6 @@ docker pull hackroid/tg-dumb-bot:latest
 docker run --name bot-one -d -v /etc/localtime:/etc/localtime:ro -e token="123456:ABCDEFGHIJKLMN" hackroid/tg-dumb-bot:latest
 ```
 
+## Other
+
+Test for signing commit
