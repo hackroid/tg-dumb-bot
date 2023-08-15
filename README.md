@@ -68,3 +68,4 @@ docker run --name bot-one -d -v /etc/localtime:/etc/localtime:ro -e token="12345
 ## Other
 
 Test for signing commit
+Test signing 2
